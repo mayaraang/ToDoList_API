@@ -28,10 +28,31 @@ const getTaskById = (id) => {
   })
 }
 
-const updateTask = (id, title, description, completed) => {
+const updateTask = (id, { title, description, completed }) => {
   return new Promise((resolve, reject) => {
-    db.run("UPDATE tasks SET title = ?, description = ?, completed = ? WHERE id = ?", 
-      [title, description, completed, id], function(err) {
+    const updates = []
+    const values = []
+
+    if (title) {
+      fields.push('title = ?')
+      values.push(title)
+    }
+    if (description) {
+      fields.push('description = ?')
+      values.push(description)
+    }
+    if (completed !== undefined) {
+      fields.push('completed = ?')
+      values.push(completed)
+    }
+    if (fields.length === 0) {
+      return resolve(null)
+    }
+
+    values.push(id)
+    const query = `UPDATE tasks SET ${fields.join(', ')} WHERE id = ?`
+
+    db.run(query, values, function(err) {
         if (err) return reject(err)
         resolve(this.changes ? { id, title, description, completed } : null)
     })
