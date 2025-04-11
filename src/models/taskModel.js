@@ -30,7 +30,7 @@ const getTaskById = (id) => {
 
 const updateTask = (id, { title, description, completed }) => {
   return new Promise((resolve, reject) => {
-    const updates = []
+    const fields = []
     const values = []
 
     if (title) {
