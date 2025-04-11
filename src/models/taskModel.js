@@ -14,7 +14,13 @@ const getTasks = () => {
   return new Promise((resolve, reject) => {
     db.all("SELECT * FROM tasks", [], (err, rows) => {
       if (err) return reject(err)
-      resolve(rows)
+      
+      const tasks = rows.map(row => ({
+        ...row,
+        completed: row.completed === 1
+      }))
+
+      resolve(tasks)
     })
   })
 }
@@ -23,7 +29,12 @@ const getTaskById = (id) => {
   return new Promise((resolve, reject) => {
     db.get("SELECT * FROM tasks WHERE id = ?", [id], (err, row) => {
       if (err) return reject(err)
-      resolve(row)
+      if (!row) return resolve(null)
+
+      resolve({
+        ...row,
+        completed: row.completed === 1
+      })
     })
   })
 }
@@ -43,7 +54,7 @@ const updateTask = (id, { title, description, completed }) => {
     }
     if (completed !== undefined) {
       fields.push('completed = ?')
-      values.push(completed)
+      values.push(completed ? 1 : 0)
     }
     if (fields.length === 0) {
       return resolve(null)
@@ -54,7 +65,12 @@ const updateTask = (id, { title, description, completed }) => {
 
     db.run(query, values, function(err) {
         if (err) return reject(err)
-        resolve(this.changes ? { id, title, description, completed } : null)
+        resolve(this.changes ? { 
+          id, 
+          title, 
+          description, 
+          completed: typeof completed === 'boolean' ? completed: undefined }
+        : null)
     })
   })
 }
